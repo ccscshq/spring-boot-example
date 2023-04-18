@@ -1,0 +1,94 @@
+plugins {
+  id 'java'
+  id 'org.springframework.boot' version '3.0.5'
+  id 'io.spring.dependency-management' version '1.1.0'
+  id 'com.google.cloud.tools.jib' version '3.3.0'
+  id 'com.palantir.git-version' version '0.15.0'
+  id 'jacoco'
+}
+
+def gitInfo = versionDetails()
+def gitHash = gitInfo.gitHashFull
+def gitHashShort = gitInfo.gitHash[0..6]
+
+group = 'io.github.ccscshq'
+version = '0.1.0'
+sourceCompatibility = '17'
+
+configurations {
+  compileOnly {
+    extendsFrom annotationProcessor
+  }
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+  // lombok
+  compileOnly 'org.projectlombok:lombok'
+  annotationProcessor 'org.projectlombok:lombok'
+  testCompileOnly 'org.projectlombok:lombok'
+  testAnnotationProcessor 'org.projectlombok:lombok'
+
+  // mapper
+  // https://mvnrepository.com/artifact/org.mapstruct/mapstruct
+  implementation group: 'org.mapstruct', name: 'mapstruct', version: '1.5.3.Final'
+  // https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor
+  annotationProcessor group: 'org.mapstruct', name: 'mapstruct-processor', version: '1.5.3.Final'
+  // https://mvnrepository.com/artifact/org.projectlombok/lombok-mapstruct-binding
+  annotationProcessor group: 'org.projectlombok', name: 'lombok-mapstruct-binding', version: '0.2.0'
+
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+  useJUnitPlatform()
+
+  testLogging {
+    showStandardStreams true
+    events 'started', 'skipped', 'passed', 'failed'
+    exceptionFormat 'full'
+  }
+}
+
+jacoco {
+  // https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin
+  toolVersion = "0.8.8"
+}
+
+jacocoTestReport {
+  reports {
+    html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    csv.required = false
+    xml.required = true
+  }
+}
+
+jib {
+  from {
+    image = 'amazoncorretto:17'
+  }
+  to {
+    image = System.getenv("ECR_REPOSITORY") ?: "ccscshq/spring-boot-example"
+    credHelper = "ecr-login"
+    tags = [
+      'latest',
+      gitHashShort
+    ]
+  }
+  container {
+    jvmFlags = [
+    ]
+    ports = ['8080']
+    format = 'OCI'
+    creationTime = 'USE_CURRENT_TIMESTAMP'
+  }
+  containerizingMode = "packaged"
+}

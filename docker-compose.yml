@@ -1,0 +1,7 @@
+services:
+  app:
+    container_name: app
+    image: ccscshq/spring-boot-example
+    restart: always
+    ports:
+      - 8080:8080
