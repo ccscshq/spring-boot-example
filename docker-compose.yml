@@ -5,3 +5,9 @@ services:
     restart: always
     ports:
       - 8080:8080
+  app2:
+    container_name: app2
+    build: .
+    restart: always
+    ports:
+      - 8081:8080
