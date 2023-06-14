@@ -76,11 +76,10 @@ jib {
     image = 'amazoncorretto:17'
   }
   to {
-    image = System.getenv("ECR_REPOSITORY") ?: "ccscshq/spring-boot-example"
+    image = System.getenv("ECR_REPOSITORY") ? "${System.getenv("ECR_REPOSITORY")}:$gitHash" : "ccscshq/spring-boot-example:latest"
     credHelper = "ecr-login"
     tags = [
-      'latest',
-      gitHashShort
+      gitHashShort,
     ]
   }
   container {
